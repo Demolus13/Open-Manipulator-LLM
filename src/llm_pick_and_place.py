@@ -18,7 +18,7 @@ class ManipulatorController:
         self.microphone = sr.Microphone()
 
         self.home_positions = [0.0, 0.0, 0.0, 0.0]
-        self.drop_off_positions = drop_off_positions = {
+        self.drop_off_positions = {
             'red': [0.5, 0.5, 0.1, 0.0],
             'blue': [0.5, -0.5, 0.1, 0.0]
         }
