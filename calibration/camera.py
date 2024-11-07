@@ -65,6 +65,11 @@ class Camera:
             self.cap.release()
         cv2.destroyAllWindows()
 
+    def stop(self):
+        if self.cap is not None:
+            self.cap.release()
+        cv2.destroyAllWindows()
+
 if __name__ == "__main__":
     color_ranges = {
         'red': ([37, 0, 0], [255, 25, 56]),

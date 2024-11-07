@@ -4,7 +4,6 @@ import cv2
 import sys
 import threading
 import rospy
-import keyboard
 from sensor_msgs.msg import JointState
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -34,7 +33,7 @@ class DataCollector:
 
     def capture_camera_data(self):
         while self.running and not rospy.is_shutdown():
-            self.camera.capture_image(show_masked_image=False)
+            self.camera.start(show_masked_image=False)
             
     def capture_joint_data(self):
         while self.running and not rospy.is_shutdown():
@@ -46,7 +45,7 @@ class DataCollector:
         data = []
         for color, points in coordinates.items():
             for x, y, w, h in points:
-                data.append([x + w//2, y + h//2] + self.joint_positions)
+                data.append([x + w//2, y + h//2] + list(self.joint_positions))
 
         with open(self.dataset_path, mode='a', newline='') as file:
             writer = csv.writer(file)
@@ -70,8 +69,7 @@ class DataCollector:
             self.camera_thread.join()
         if self.joint_thread is not None:
             self.joint_thread.join()
-        if self.camera.cap is not None:
-            self.camera.cap.release()
+        self.camera.stop()
         cv2.destroyAllWindows()
 
     def toggle_pause(self):
