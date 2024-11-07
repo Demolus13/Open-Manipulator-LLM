@@ -1,5 +1,6 @@
 import os
 import csv
+import cv2
 import threading
 import rospy
 from sensor_msgs.msg import JointState
@@ -28,16 +29,13 @@ class DataCollector:
     def capture_camera_data(self):
         while self.running and not rospy.is_shutdown():
             # Capture image and get coordinates
-            self.camera.capture_image()
+            self.camera.capture_image(show_masked_image=False)
             
-            rospy.sleep(self.interval/10)
-
     def capture_joint_data(self):
         while self.running and not rospy.is_shutdown():
             # Get joint state data
             joint_state = rospy.wait_for_message('/joint_states', JointState)
             self.joint_positions = joint_state.position[:4]
-            rospy.sleep(self.interval/10)
 
     def store_camera_and_joint_data(self):
         coordinates = self.camera.get_coordinates()
@@ -67,11 +65,15 @@ class DataCollector:
             self.camera_thread.join()
         if self.joint_thread is not None:
             self.joint_thread.join()
-        self.camera.release()
+        if self.camera.cap is not None:
+            self.camera.cap.release()
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     color_ranges = {
-        'red': ([0, 0, 100], [50, 50, 255])
+        'red': ([37, 0, 0], [255, 25, 56]),
+        'orange': ([0, 36, 83], [66, 103, 170]),
+        'yellow': ([43, 107, 106], [123, 172, 173]),
     }
     dataset_path = 'calibration/datasets/DATASET_0.csv'
     frequency = 10

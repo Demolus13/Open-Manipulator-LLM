@@ -18,7 +18,13 @@ cv2.createTrackbar('Upper G', 'Masked Image', 255, 255, nothing)
 cv2.createTrackbar('Upper B', 'Masked Image', 255, 255, nothing)
 
 # Capture video from the webcam
-cap = cv2.VideoCapture(0)
+for i in range(1, 10):
+    cap = cv2.VideoCapture(i)
+    if cap.isOpened():
+        break
+else:
+    print("Cannot open the webcam")
+    exit()
 
 while True:
     # Read the frame
@@ -37,8 +43,8 @@ while True:
     upper_b = cv2.getTrackbarPos('Upper B', 'Masked Image')
 
     # Define the lower and upper bounds for the color
-    lower_bound = np.array([lower_b, lower_g, lower_r])
-    upper_bound = np.array([upper_b, upper_g, upper_r])
+    lower_bound = np.array([lower_r, lower_g, lower_b])
+    upper_bound = np.array([upper_r, upper_g, upper_b])
 
     # Create a mask
     mask = cv2.inRange(frame, lower_bound, upper_bound)
