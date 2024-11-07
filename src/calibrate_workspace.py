@@ -3,6 +3,7 @@ import csv
 import cv2
 import threading
 import rospy
+import keyboard
 from sensor_msgs.msg import JointState
 from calibration.camera import Camera
 
@@ -13,6 +14,7 @@ class DataCollector:
         self.interval = interval
         self.camera = Camera(color_ranges)
         self.running = False
+        self.paused = True
         self.camera_thread = None
         self.joint_thread = None
         self.joint_positions = [0, 0, 0, 0]
@@ -28,12 +30,10 @@ class DataCollector:
 
     def capture_camera_data(self):
         while self.running and not rospy.is_shutdown():
-            # Capture image and get coordinates
             self.camera.capture_image(show_masked_image=False)
             
     def capture_joint_data(self):
         while self.running and not rospy.is_shutdown():
-            # Get joint state data
             joint_state = rospy.wait_for_message('/joint_states', JointState)
             self.joint_positions = joint_state.position[:4]
 
@@ -56,7 +56,8 @@ class DataCollector:
         self.joint_thread.start()
         
         while self.running and not rospy.is_shutdown():
-            self.store_camera_and_joint_data()
+            if not self.paused:
+                self.store_camera_and_joint_data()
             rospy.sleep(self.interval)
 
     def stop(self):
@@ -69,6 +70,13 @@ class DataCollector:
             self.camera.cap.release()
         cv2.destroyAllWindows()
 
+    def toggle_pause(self):
+        self.paused = not self.paused
+        if self.paused:
+            print("Data collection paused.")
+        else:
+            print("Data collection resumed.")
+
 if __name__ == "__main__":
     color_ranges = {
         'red': ([37, 0, 0], [255, 25, 56]),
@@ -78,7 +86,19 @@ if __name__ == "__main__":
     dataset_path = 'calibration/datasets/DATASET_0.csv'
     frequency = 10
     collector = DataCollector(color_ranges, dataset_path, 1/frequency)
+
+    # Start the data collector in a separate thread
+    collector_thread = threading.Thread(target=collector.start)
+    collector_thread.start()
+
     try:
-        collector.start()
+        while True:
+            if keyboard.is_pressed('enter'):
+                collector.toggle_pause()
+                while keyboard.is_pressed('enter'):
+                    pass
+            elif keyboard.is_pressed('q'):
+                collector.stop()
+                break
     except KeyboardInterrupt:
         collector.stop()
