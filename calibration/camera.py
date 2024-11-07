@@ -67,7 +67,9 @@ class Camera:
 
 if __name__ == "__main__":
     color_ranges = {
-        'red': ([26, 120, 114], [129, 143, 166]),
+        'red': ([37, 0, 0], [255, 25, 56]),
+        'orange': ([0, 36, 83], [66, 103, 170]),
+        'yellow': ([43, 107, 106], [123, 172, 173]),
     }
     camera = Camera(color_ranges)
     camera.start(show_masked_image=True)

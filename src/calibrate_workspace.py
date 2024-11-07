@@ -72,8 +72,8 @@ class DataCollector:
 if __name__ == "__main__":
     color_ranges = {
         'red': ([37, 0, 0], [255, 25, 56]),
-        'orange': ([0, 36, 83], [66, 103, 170]),
-        'yellow': ([43, 107, 106], [123, 172, 173]),
+        # 'orange': ([0, 36, 83], [66, 103, 170]),
+        # 'yellow': ([43, 107, 106], [123, 172, 173]),
     }
     dataset_path = 'calibration/datasets/DATASET_0.csv'
     frequency = 10

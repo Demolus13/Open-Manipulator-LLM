@@ -116,7 +116,9 @@ class ManipulatorController:
 if __name__ == "__main__":
     model_path = "calibration/models/MODEL_0.pth"
     color_ranges = {
-        'red': ([0, 0, 0], [255, 30, 68])
+        'red': ([37, 0, 0], [255, 25, 56]),
+        'orange': ([0, 36, 83], [66, 103, 170]),
+        'yellow': ([43, 107, 106], [123, 172, 173]),
     }
     controller = ManipulatorController(model_path, color_ranges)
     try:
