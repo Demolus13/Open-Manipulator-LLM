@@ -86,10 +86,6 @@ Open-Manipulator-LLM/
         }
         ```
     - To change the color ranges or define new colors run the script `src/define_color_range.py`.
-        ```py
-        # Print the selected color ranges
-        print(f"Selected color range:\nLower bound: {lower_bound}\nUpper bound: {upper_bound}")
-        ```
 
 2. Collect the data for workspace calibration:
 
