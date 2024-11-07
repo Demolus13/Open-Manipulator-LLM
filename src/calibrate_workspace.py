@@ -1,10 +1,14 @@
 import os
 import csv
 import cv2
+import sys
 import threading
 import rospy
 import keyboard
 from sensor_msgs.msg import JointState
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from calibration.camera import Camera
 
 class DataCollector:
@@ -35,7 +39,7 @@ class DataCollector:
     def capture_joint_data(self):
         while self.running and not rospy.is_shutdown():
             joint_state = rospy.wait_for_message('/joint_states', JointState)
-            self.joint_positions = joint_state.position[:4]
+            self.joint_positions = joint_state.position[1:]
 
     def store_camera_and_joint_data(self):
         coordinates = self.camera.get_coordinates()
@@ -93,12 +97,11 @@ if __name__ == "__main__":
 
     try:
         while True:
-            if keyboard.is_pressed('enter'):
-                collector.toggle_pause()
-                while keyboard.is_pressed('enter'):
-                    pass
-            elif keyboard.is_pressed('q'):
+            user_input = input("Press Enter to toggle pause/resume, or 'q' to quit: ").strip().lower()
+            if user_input == 'q':
                 collector.stop()
                 break
+            else:
+                collector.toggle_pause()
     except KeyboardInterrupt:
         collector.stop()

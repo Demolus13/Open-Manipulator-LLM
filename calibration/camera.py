@@ -39,7 +39,7 @@ class Camera:
 
                 for contour in contours:
                     area = cv2.contourArea(contour)
-                    if area > 100:
+                    if area > 500:
                         x, y, w, h = cv2.boundingRect(contour)
                         coordinates[color].append((x, y, w, h))
 
@@ -68,8 +68,8 @@ class Camera:
 if __name__ == "__main__":
     color_ranges = {
         'red': ([37, 0, 0], [255, 25, 56]),
-        'orange': ([0, 36, 83], [66, 103, 170]),
-        'yellow': ([43, 107, 106], [123, 172, 173]),
+        # 'orange': ([0, 36, 83], [66, 103, 170]),
+        # 'yellow': ([43, 107, 106], [123, 172, 173]),
     }
     camera = Camera(color_ranges)
     camera.start(show_masked_image=True)
