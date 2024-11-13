@@ -2,11 +2,11 @@ import cv2
 
 class Calibration:
     def __init__(self, start_index=0):
-        self.max_index = max_index
+        self.start_index = start_index
         self.cap = None
         self.index = -1
         self.points = []
-        self.point_names = ["upper-left", "upper-right", "bottom-left", "bottom-right"]
+        self.point_names = ["upper-right", "upper-left", "bottom-left", "bottom-right"]
         self._initialize_webcam()
     
     def _initialize_webcam(self):
