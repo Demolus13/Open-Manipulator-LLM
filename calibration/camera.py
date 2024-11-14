@@ -17,8 +17,8 @@ class Camera:
         self.color_ranges = {}
         for color, (lower_bound, upper_bound) in color_ranges.items():
             self.color_ranges[color] = (
-                np.array(lower_bound[::-1]),  # Reverse RGB to BGR
-                np.array(upper_bound[::-1])
+                np.array(lower_bound),
+                np.array(upper_bound)
             )
 
         self.coordinates = {}
@@ -79,7 +79,10 @@ class Camera:
 
 if __name__ == "__main__":
     color_ranges = {
-        'red': ([37, 0, 0], [255, 25, 56]),
+        'red': ([0, 0, 88], [105, 28, 155]),
+        'purple': ([81, 25, 0], [126, 58, 255]),
+        'yellow': ([9, 58, 0], [65, 150, 255]),
+        'green': ([76, 111, 61], [120, 163, 91])
     }
     camera = Camera(color_ranges)
     coordinates = {}

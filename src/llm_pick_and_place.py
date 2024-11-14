@@ -21,13 +21,14 @@ class ManipulatorController:
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone(device_index=1)
 
-        self.home_positions = [0.160545, -0.013251, 0.087827, 0.030292, 0.680489, -0.032558, 0.731408]
+        self.home_positions = [0.170184, -0.017297, 0.086728, 0.036180, 0.663726, -0.040664, 0.745993]
         self.drop_off_positions = {
             'red': [0.5, 0.5, 0.1, 0.0],
             'blue': [0.5, -0.5, 0.1, 0.0]
         }
         xx = -0.025548
         yy = -0.159262
+        self.base = 0.040792
         self.real_workspace_points = [(xx, yy+0.31), (xx, yy), (xx+0.31,yy), (xx+0.31, yy+0.31)]
         self.M = cv2.getPerspectiveTransform(np.float32(workspace_points), np.float32(self.real_workspace_points))
 
@@ -37,6 +38,7 @@ class ManipulatorController:
         self.coordinates = {}
 
         self.set_home()
+        self.control_gripper(0.01)  
 
     def control_gripper(self, position, path_time=2.0):
         try:
@@ -81,6 +83,10 @@ class ManipulatorController:
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed: %s" % e)
             return False
+        
+    def get_closer(self, x, y):
+        
+        pass
 
     def pick_and_place(self, color, coordinates):
         for (x, y, w, h) in coordinates:
@@ -90,13 +96,17 @@ class ManipulatorController:
             # Move to the object's position
             self.set_home()
             self.control_gripper(0.01)
-            self.move_end_effector(robot_x, robot_y, 0.034792, 0.140060, 0.671755, -0.148471, 0.712099)
+            response = self.move_end_effector(robot_x, robot_y, 0.034792, 0.140060, 0.671755, -0.148471, 0.712099)
+            if not response:
+                self.set_home()
+                continue
             self.control_gripper(-0.01)
             self.set_home()
-            self.set_drop_off(color)
+            response = self.set_drop_off(color)
+            if not response:
+                continue
             self.control_gripper(0.01)
             self.set_home()
-
 
     def set_home(self):
         # Define home position for the manipulator
@@ -104,13 +114,19 @@ class ManipulatorController:
 
     def set_drop_off(self, color):
         # Define drop-off position for the manipulator
-        self.move_end_effector(0.285860, -0.003361, 0.210861, -0.000132, -0.021474, -0.006134, 0.999751)
-        self.move_end_effector(0.030401, 0.260340, 0.221987, 0.036584, -0.039261, 0.680742, 0.730555)
-        self.move_end_effector(0.037506, 0.187797, 0.135732, -0.303393, 0.347384, 0.583663, 0.668292)
+        response = self.move_end_effector(0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089)
+        if not response:
+            return False
+
+        response = self.move_end_effector(0.024607, 0.216026, 0.116800, -0.306642, 0.325058, 0.613874, 0.650743)
+        if not response:
+            return False
+        
+        return True
 
     def capture_images(self):
         while not rospy.is_shutdown():
-            self.camera.start(self.coordinates, show_masked_image=True)
+            self.camera.start(self.coordinates, show_masked_image=False)
 
     def listen_for_commands(self):
         while not rospy.is_shutdown():
@@ -163,9 +179,10 @@ class ManipulatorController:
 
 if __name__ == "__main__":
     color_ranges = {
-        'red': ([37, 0, 0], [255, 25, 56])
+        'red': ([0, 0, 88], [105, 28, 155]),
+        'purple': ([81, 25, 0], [126, 58, 255]),
     }
-    workspace_points = [(531, 20), (129, 18), (97, 438), (560, 440)]
+    workspace_points = [(532, 32), (149, 29), (113, 429), (571, 433)]
     controller = ManipulatorController(color_ranges, workspace_points)
     try:
         controller.run()
