@@ -1,16 +1,18 @@
 import os
 import sys
+import cv2
 import time
 import math
 
 import rospy
 import threading
 import numpy as np
-import cv2
 
 from sensor_msgs.msg import JointState
 from open_manipulator_msgs.srv import SetJointPosition, SetJointPositionRequest, SetKinematicsPose, SetKinematicsPoseRequest
+
 import speech_recognition as sr
+
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from calibration.camera import Camera
@@ -202,6 +204,30 @@ class ManipulatorController:
         while not rospy.is_shutdown():
             self.camera.start(self.object_coordinates, show_masked_image=False)
 
+    def process_command_with_llm(self, command):
+        prompt = (
+            "You are controlling a robot manipulator. The robot can perform tasks such as picking up objects of different colors. "
+            "Interpret the following command and provide the action in the format 'action: color'.\n"
+            f"Command: {command}\n"
+            "Response format: 'pick up: color' or 'unknown command'."
+        )
+        response = None
+        return response.choices[0].text.strip()
+    
+    def execute_command(self, interpreted_command):
+        if interpreted_command.startswith("pick up:"):
+            color = interpreted_command.split(":")[1].strip()
+            if color in self.camera.color_ranges.keys():
+                if color in self.object_coordinates:
+                    self.execute_pick_and_place(color, self.object_coordinates[color])
+                    self.object_coordinates.pop(color)
+                else:
+                    rospy.logwarn(f"No {color} objects detected.")
+            else:
+                rospy.logwarn(f"Unknown color: {color}")
+        else:
+            rospy.logwarn(f"Command not recognized: {interpreted_command}")
+
     def listen_for_commands(self):
         """Listen for voice commands to identify objects and initiate pick-and-place."""
         while not rospy.is_shutdown():
@@ -214,13 +240,9 @@ class ManipulatorController:
                 command = self.recognizer.recognize_google(audio).lower()
                 print(f"Command received: {command}")
 
-                for color in self.camera.color_ranges.keys():
-                    if color in command:
-                        if color in self.object_coordinates:
-                            self.execute_pick_and_place(color, self.object_coordinates[color])
-                            self.object_coordinates.pop(color)
-                        else:
-                            rospy.logwarn(f"No {color} objects detected.")
+                # command = self.process_command_with_llm(command)
+                # print(f"Interpreted command: {command}")
+                self.execute_command(command)
             except sr.UnknownValueError:
                 rospy.logwarn("Could not understand the audio.")
             except sr.RequestError as e:
@@ -288,9 +310,7 @@ if __name__ == "__main__":
     color_ranges = {
         'red': ([0, 0, 88], [105, 28, 155]),
         'green': ([26, 40, 0], [75, 255, 31]),
-        'purple': ([81, 25, 0], [126, 58, 255]),
-        'yellow': ([60, 115, 114], [127, 178, 185]),
-        'orange': ([0, 36, 89], [75, 255, 190])
+        'purple': ([81, 25, 0], [126, 58, 255])
     }
     workspace_points = [(543, 25), (138, 23), (113, 449), (575, 446)]
     controller = ManipulatorController(color_ranges, workspace_points)
