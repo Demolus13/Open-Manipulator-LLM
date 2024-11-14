@@ -24,6 +24,7 @@ To install the required packages, use:
 
 ```bash
 pip install opencv-python-headless numpy
+```
 
 ## How It Works
 
