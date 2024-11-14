@@ -25,10 +25,13 @@ class ManipulatorController:
         # Define manipulator positions
         self.start_position = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
         self.home_position = [0.170184, -0.017297, 0.086728, 0.036180, 0.663726, -0.040664, 0.745993]
-        self.drop_off_position = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
+        self.drop_off_position = [0.011012, 0.161025, 0.093839, 0.454568, 0.451787, -0.544460, 0.541129]
         self.drop_off_positions = {
             'default': [0.024607, 0.216026, 0.116800, -0.306642, 0.325058, 0.613874, 0.650743],
             'red': [0.024607, 0.216026, 0.116800, -0.306642, 0.325058, 0.613874, 0.650743],
+            'green': [0.00264, -0.226742, 0.126346, 0.281248, 0.269835, -0.664532, 0.637563],
+            'purple': [0.177435, 0.196612, 0.181032, -0.086134, 0.185044, 0.413116, 0.887510],
+            'orange': [0.125398, -0.195257, 0.118291, 0.208797, 0.362717, -0.453098, 0.787111]
         }
 
         # Setup workspace transformation
@@ -61,7 +64,7 @@ class ManipulatorController:
         """Callback to update current joint states."""
         self.current_joint_states = data.position
 
-    def control_gripper(self, position, path_time=2.0):
+    def control_gripper(self, position, path_time=1.0):
         """Control the gripper position."""
         try:
             rospy.wait_for_service('/goal_tool_control', timeout=5)
@@ -81,7 +84,7 @@ class ManipulatorController:
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed: {e}")
 
-    def control_single_joint_position(self, joint_name, joint_position, path_time=2.0):
+    def control_single_joint_position(self, joint_name, joint_position, path_time=1.0):
         """Move a single joint to the specified position."""
         if self.current_joint_states is None:
             rospy.logwarn("Joint states not received yet.")
@@ -117,7 +120,7 @@ class ManipulatorController:
 
         return response.is_planned
 
-    def control_all_joint_position(self, joint_positions, path_time=2.0):
+    def control_all_joint_position(self, joint_positions, path_time=1.0):
         """Move all joints to specified positions."""
         try:
             rospy.wait_for_service('/goal_joint_space_path', timeout=5)
@@ -139,7 +142,7 @@ class ManipulatorController:
         
         return response.is_planned
 
-    def move_end_effector(self, x, y, z, q1=0.0, q2=0.0, q3=0.0, q4=0.0, path_time=2.0):
+    def move_end_effector(self, x, y, z, q1=0.0, q2=0.0, q3=0.0, q4=0.0, path_time=1.0):
         """Move the end effector to a specific position and orientation."""
         rospy.wait_for_service('/goal_task_space_path')
         try:
@@ -178,7 +181,7 @@ class ManipulatorController:
             if not self.control_single_joint_position("joint1", joint_angle, 1.0):
                 self.reset_to_start()
                 continue
-            if not self.move_end_effector(object_center_x, object_center_y, self.base_z, 0.140060, 0.671755, -0.148471, 0.712099):
+            if not self.move_end_effector(object_center_x + 0.1 * (0.31 - object_center_x), object_center_y, self.base_z, 0.140060, 0.671755, -0.148471, 0.712099):
                 self.reset_to_start()
                 continue
 
@@ -195,7 +198,7 @@ class ManipulatorController:
                 continue
 
             self.control_gripper(0.01)  # Open gripper to release the object
-            self.set_to_start_position(1.0)
+            self.reset_to_start()
 
     def capture_images(self):
         """Continuously capture images to detect objects."""
@@ -226,20 +229,33 @@ class ManipulatorController:
             except sr.RequestError as e:
                 rospy.logerr(f"Could not request results from Google Speech Recognition service; {e}")
 
-    def set_to_start_position(self, path_time=2.0):
+    def set_to_start_position(self, path_time=1.0):
         """Move the manipulator to the start position."""
         self.move_end_effector(*self.start_position, path_time)
 
-    def set_to_home_position(self, path_time=2.0):
+    def set_to_home_position(self, path_time=1.0):
         """Move the manipulator to the home position."""
         self.move_end_effector(*self.home_position, path_time)
 
     def drop_off(self, color):
         """Move the end effector to the drop-off position based on color."""
-        if not self.move_end_effector(*self.drop_off_position):
-            return False
-        
+
         if color in self.drop_off_positions:
+            if(color == 'red'):
+                self.drop_off_position = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
+            elif(color == 'green'):
+                self.drop_off_position = [0.011012, -0.161025, 0.093839, 0.454568, 0.451787, -0.544460, 0.541129]
+            elif(color == 'purple'):
+                self.drop_off_position = [0.119341, 0.130795, 0.109074, -0.263562, 0.557255, 0.336658, 0.711803]
+            elif(color == 'orange'):
+                self.drop_off_position = [0.090887, -0.145967, 0.093733, 0.328219, 0.550468, -0.393125, 0.659325]
+            else:
+                self.drop_off_position = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
+                print('No drop-off position defined for {color} object.')
+            
+            
+            if not self.move_end_effector(*self.drop_off_position):
+                return False
             cartesian_position = self.drop_off_positions[color]
             return self.move_end_effector(*cartesian_position)
         else:
@@ -288,9 +304,10 @@ if __name__ == "__main__":
     color_ranges = {
         'red': ([0, 0, 88], [105, 28, 155]),
         'green': ([26, 40, 0], [75, 255, 31]),
-        'purple': ([81, 25, 0], [126, 58, 255])
+        'purple': ([48, 0, 0], [85, 23, 67]),
+        'orange': ([0, 35, 93], [38, 84, 155])
     }
-    workspace_points = [(515, 29), (112, 25), (70, 450), (553, 451)]
+    workspace_points = [(522, 24), (119, 21), (78, 447), (560, 446)]
     controller = ManipulatorController(color_ranges, workspace_points)
 
     try:
