@@ -76,4 +76,10 @@ color_ranges = {
 
    ```bash
    python color_object_detection.py
+   ```
+   
+4. **View the Live Feed**
+Once the program starts, the live camera feed will open, displaying bounding boxes around detected color objects. The bounding boxes will be labeled with the corresponding color name.
 
+5. **Quit the Program**
+To stop the program, press q while the camera feed window is active.
