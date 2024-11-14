@@ -83,3 +83,13 @@ Once the program starts, the live camera feed will open, displaying bounding box
 
 5. **Quit the Program**
 To stop the program, press q while the camera feed window is active.
+
+### Code Overview
+
+- **Camera Class**:
+  - `__init__`: Initializes the camera and loads color ranges.
+  - `capture_image`: Captures and processes a frame, applying color masks and drawing bounding boxes.
+  - `start`: Begins continuous capture and processing until `q` is pressed.
+  - `stop`: Releases the camera and closes windows.
+  
+- **Main Execution**: Defines color ranges and initializes the `Camera` class. The program starts with `camera.start`, enabling object detection.
