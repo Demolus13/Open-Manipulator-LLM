@@ -181,9 +181,9 @@ Manipulator not moving: Check if the manipulator is correctly connected and conf
 We welcome contributions to this project! If you have suggestions or improvements, feel free to open an issue or submit a pull request.
 
  - How to Contribute
- - 1. Fork the repository.
- - 2. Create a new branch for your feature or bug fix.
- - 3 .Make your changes.
- - 4. Commit your changes with meaningful messages.
- - 5. Push your changes to your forked repository.
- - 6. Open a pull request to the main repository.
+   1. Fork the repository.
+   2. Create a new branch for your feature or bug fix.
+   3.Make your changes.
+   4. Commit your changes with meaningful messages.
+   5. Push your changes to your forked repository.
+   6. Open a pull request to the main repository.
