@@ -170,6 +170,7 @@ catkin_install_python(PROGRAMS
   src/get_coordinates.py
   src/cartesian_control.py
   src/llm_pick_and_place.py
+  src/get_joint_states.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

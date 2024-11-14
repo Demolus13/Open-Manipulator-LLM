@@ -4,8 +4,7 @@ import rospy
 from sensor_msgs.msg import JointState
 
 def joint_states_callback(msg):
-    positions = msg.position
-    rospy.loginfo("Joint States: %s", positions)
+    rospy.loginfo("Joint States: %s", msg)
 
 def get_joint_states():
     rospy.init_node('get_joint_states', anonymous=True)

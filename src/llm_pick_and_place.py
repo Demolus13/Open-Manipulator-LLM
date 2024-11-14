@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import math
 
 import rospy
 import threading
@@ -11,7 +12,7 @@ import cv2
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from calibration.camera import Camera
 
-from std_srvs.srv import Empty
+from sensor_msgs.msg import JointState
 from open_manipulator_msgs.srv import SetJointPosition, SetJointPositionRequest, SetKinematicsPose, SetKinematicsPoseRequest
 import speech_recognition as sr
 
@@ -21,6 +22,7 @@ class ManipulatorController:
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone(device_index=1)
 
+        self.start_positions = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
         self.home_positions = [0.170184, -0.017297, 0.086728, 0.036180, 0.663726, -0.040664, 0.745993]
         self.drop_off_positions = {
             'red': [0.5, 0.5, 0.1, 0.0],
@@ -31,13 +33,16 @@ class ManipulatorController:
         self.base = 0.040792
         self.real_workspace_points = [(xx, yy+0.31), (xx, yy), (xx+0.31,yy), (xx+0.31, yy+0.31)]
         self.M = cv2.getPerspectiveTransform(np.float32(workspace_points), np.float32(self.real_workspace_points))
+        self.current_joint_states = None
 
         self.running = False
         self.image_thread = None
         self.command_thread = None
         self.coordinates = {}
 
-        self.set_home()
+        rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
+
+        self.set_start()
         self.control_gripper(0.01)  
 
     def control_gripper(self, position, path_time=2.0):
@@ -58,6 +63,39 @@ class ManipulatorController:
             time.sleep(path_time)
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed: {e}")
+
+    def control_joint_positions(self, joint_name, joint_position, path_time=3.0):
+        if self.current_joint_states is None:
+            rospy.logwarn("Joint states not received yet.")
+            return False
+        
+        joint_names = ["joint1", "joint2", "joint3", "joint4"]
+        if joint_name not in joint_names:
+            rospy.logwarn(f"Invalid joint name: {joint_name}")
+            return False
+        
+        joint_positions = list(self.current_joint_states)
+        joint_index = joint_names.index(joint_name)
+        joint_positions[joint_index] = joint_position
+
+        try:
+            rospy.wait_for_service('/goal_joint_space_path', timeout=5)
+            move_joint_service = rospy.ServiceProxy('/goal_joint_space_path', SetJointPosition)
+            request = SetJointPositionRequest()
+            request.joint_position.joint_name = joint_names
+            request.joint_position.position = joint_positions
+            request.path_time = path_time
+            response = move_joint_service(request)
+            if response.is_planned:
+                time.sleep(path_time)
+                rospy.loginfo(f"Joint {joint_name} moved to position {joint_position} successfully!")
+            else:
+                rospy.logwarn(f"Failed to move joint {joint_name} to position {joint_position}.")
+        except rospy.ServiceException as e:
+            rospy.logerr(f"Service call failed: {e}")
+            return False
+        
+        return response.is_planned
 
     def move_end_effector(self, x, y, z, q1 = 0.0, q2 = 0.0, q3 = 0.0, q4 = 0.0, path_time=3.0):
         rospy.wait_for_service('/goal_task_space_path')
@@ -83,10 +121,6 @@ class ManipulatorController:
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed: %s" % e)
             return False
-        
-    def get_closer(self, x, y):
-        
-        pass
 
     def pick_and_place(self, color, coordinates):
         for (x, y, w, h) in coordinates:
@@ -96,21 +130,34 @@ class ManipulatorController:
             # Move to the object's position
             self.set_home()
             self.control_gripper(0.01)
+            response = self.control_joint_positions("joint1", math.atan2(robot_y, robot_x))
+            if not response:
+                self.set_home()
+                self.set_start()
+                continue
             response = self.move_end_effector(robot_x, robot_y, 0.034792, 0.140060, 0.671755, -0.148471, 0.712099)
             if not response:
                 self.set_home()
+                self.set_start()
                 continue
             self.control_gripper(-0.01)
             self.set_home()
             response = self.set_drop_off(color)
             if not response:
+                self.set_home()
+                self.set_start()
                 continue
             self.control_gripper(0.01)
-            self.set_home()
 
-    def set_home(self):
+            self.set_start(1.0)
+
+    def set_home(self, path_time=3.0):
         # Define home position for the manipulator
-        self.move_end_effector(*self.home_positions, 3.0)
+        self.move_end_effector(*self.home_positions, path_time)
+
+    def set_start(self, path_time=3.0):
+        # Define start position for the manipulator
+        self.move_end_effector(*self.start_positions, path_time)
 
     def set_drop_off(self, color):
         # Define drop-off position for the manipulator
@@ -123,6 +170,9 @@ class ManipulatorController:
             return False
         
         return True
+    
+    def joint_states_callback(self, data):
+        self.current_joint_states = data.position
 
     def capture_images(self):
         while not rospy.is_shutdown():
