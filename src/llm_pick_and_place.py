@@ -1,12 +1,12 @@
 import os
 import sys
+import cv2
 import time
 import math
 
 import rospy
 import threading
 import numpy as np
-import cv2
 
 from sensor_msgs.msg import JointState
 from open_manipulator_msgs.srv import SetJointPosition, SetJointPositionRequest, SetKinematicsPose, SetKinematicsPoseRequest
@@ -32,9 +32,9 @@ class ManipulatorController:
         }
 
         # Setup workspace transformation
-        self.base_position_x = -0.025548
-        self.base_position_y = -0.159262
-        self.base_z = 0.034792
+        self.base_position_x = -0.030385
+        self.base_position_y = -0.154077
+        self.base_z = 0.045792
         self.real_workspace_points = [
             (self.base_position_x, self.base_position_y + 0.31), 
             (self.base_position_x, self.base_position_y), 
@@ -288,11 +288,9 @@ if __name__ == "__main__":
     color_ranges = {
         'red': ([0, 0, 88], [105, 28, 155]),
         'green': ([26, 40, 0], [75, 255, 31]),
-        'purple': ([81, 25, 0], [126, 58, 255]),
-        'yellow': ([60, 115, 114], [127, 178, 185]),
-        'orange': ([0, 36, 89], [75, 255, 190])
+        'purple': ([81, 25, 0], [126, 58, 255])
     }
-    workspace_points = [(543, 25), (138, 23), (113, 449), (575, 446)]
+    workspace_points = [(515, 29), (112, 25), (70, 450), (553, 451)]
     controller = ManipulatorController(color_ranges, workspace_points)
 
     try:
