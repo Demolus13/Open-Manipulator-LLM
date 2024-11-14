@@ -89,16 +89,19 @@ Build the ROS workspace:
    ```bash
    cd ~/catkin_ws
    catkin_make
+   ```
 
 Source the workspace:
 
    ```bash
    source devel/setup.bash
+   ```
 
 Launch the ROS nodes for manipulator control and object detection:
 
    ```bash
    rosrun <package_name> llm_pick_and_place.py
+   ```
 
 ## Usage
 
@@ -133,6 +136,7 @@ Ensure that the camera feed is active, and the robot is properly calibrated for 
 
    ```bash
    rosrun <package_name> llm_pick_and_place.py
+   ```
 
 2. Once the system is running, speak the following commands to the robot:
    - "Pick up the red object" → The robot will detect the red object, compute the joint angles, and pick it up.
