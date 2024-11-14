@@ -143,3 +143,47 @@ Ensure that the camera feed is active, and the robot is properly calibrated for 
    - "Place the red object" → The robot will place the red object at a predefined location.
    Make sure that the color range settings in define_color_range.py match the color of the object you are trying to interact with.
 
+
+
+## Color Range Definition
+Objects are detected based on their colors using predefined HSV (Hue, Saturation, Value) ranges. These ranges are set in the define_color_range.py script and can be customized based on the objects you are working with.
+
+   ```python
+   color_ranges = {
+       'red': ([0, 0, 88], [105, 28, 155]),
+       'green': ([26, 40, 0], [75, 255, 31]),
+       'purple': ([81, 25, 0], [126, 58, 255]),
+       'yellow': ([60, 115, 114], [127, 178, 185]),
+       'orange': ([0, 36, 89], [75, 255, 190])
+   }
+   ```
+
+## Voice Commands
+The system is integrated with the speech_recognition library to process voice commands. After launching the system, the robot will listen for commands, such as:
+
+"Pick up the red object"
+"Place the red object"
+Ensure that your microphone is configured and working correctly for voice recognition. If no command is recognized, ensure you're speaking clearly and the microphone input is properly set up.
+
+## Calibration
+To calibrate the workspace and the camera, you can use the scripts under the calibration/ directory:
+
+- camera.py: This script handles the camera setup and calibration to detect objects accurately.
+calibrate_workspace.py: This script is used to define the workspace limits and map them to real-world coordinates for the manipulator to interact within the designated area.
+
+## Troubleshooting
+ - No object detected: Ensure the object is within the camera's field of view and that the color ranges in define_color_range.py match the color of the object.
+Manipulator not moving: Check if the manipulator is correctly connected and configured in ROS. Verify that the joint states are being properly received.
+ - Voice command not recognized: Ensure the microphone is set up and that background noise is minimized for better accuracy. You can also try adjusting the speech recognition library settings or speaking more clearly.
+ - No movement after calibration: Double-check the calibration process and make sure the workspace boundaries are defined correctly in calibrate_workspace.py.
+
+## Contributing
+We welcome contributions to this project! If you have suggestions or improvements, feel free to open an issue or submit a pull request.
+
+ - How to Contribute
+ - 1. Fork the repository.
+ - 2. Create a new branch for your feature or bug fix.
+ - 3 .Make your changes.
+ - 4. Commit your changes with meaningful messages.
+ - 5. Push your changes to your forked repository.
+ - 6. Open a pull request to the main repository.
