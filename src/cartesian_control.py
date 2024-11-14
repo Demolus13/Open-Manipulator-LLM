@@ -28,12 +28,14 @@ if __name__ == "__main__":
     rospy.init_node('cartesian_control')
     planning_group = "arm"  # Replace with the correct planning group name if different
     end_effector_name = "gripper"
-    x = 0.264617  # Desired x coordinate
-    y = -0.152468  # Desired y coordinate
-    z = 0.056600  # Desired z coordinate
+    x = 0.2  # Desired x coordinate
+    y = -0.2  # Desired y coordinate
+    z = 0.2  # Desired z coordinate
     time = 3.0  # Time to reach the desired coordinates
     success = move_end_effector(planning_group, end_effector_name, x, y, z, time)
     if success:
         rospy.loginfo("End effector moved successfully")
     else:
         rospy.logerr("Failed to move end effector")
+
+# drop off x=0.124859, y=0.082899, z=0.041963

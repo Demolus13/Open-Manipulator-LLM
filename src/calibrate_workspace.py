@@ -90,5 +90,5 @@ class Calibration:
 
 # Usage example:
 if __name__ == "__main__":
-    webcam_display = Calibration(start_index=0)
+    webcam_display = Calibration(start_index=1)
     webcam_display.display_webcam()

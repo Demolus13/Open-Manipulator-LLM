@@ -5,7 +5,9 @@ from open_manipulator_msgs.msg import KinematicsPose
 
 def kinematics_pose_callback(data):
     position = data.pose.position
+    orientation = data.pose.orientation
     rospy.loginfo("End effector coordinates: x=%f, y=%f, z=%f" % (position.x, position.y, position.z))
+    rospy.loginfo("End effector orientation: x=%f, y=%f, z=%f, w=%f" % (orientation.x, orientation.y, orientation.z, orientation.w))
 
 if __name__ == "__main__":
     rospy.init_node('get_end_effector_coordinates', anonymous=True)

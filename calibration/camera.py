@@ -43,6 +43,10 @@ class Camera:
                         x, y, w, h = cv2.boundingRect(contour)
                         coordinates[color].append((x, y, w, h))
 
+                        # midpoint_x = x + w // 2
+                        # midpoint_y = y + h // 2
+                        # print(f"{color} object detected at ({midpoint_x}, {midpoint_y})")
+
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                         cv2.putText(frame, color, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
 
@@ -54,10 +58,13 @@ class Camera:
         
     def get_coordinates(self):
         return self.coordinates
-
-    def start(self, show_masked_image=False):
+    
+    def start(self, coordinates, show_masked_image=False):
         while True:
             self.capture_image(show_masked_image=show_masked_image)
+            coordinates.clear()
+            coordinates.update(self.get_coordinates())
+
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
@@ -73,8 +80,7 @@ class Camera:
 if __name__ == "__main__":
     color_ranges = {
         'red': ([37, 0, 0], [255, 25, 56]),
-        # 'orange': ([0, 36, 83], [66, 103, 170]),
-        # 'yellow': ([43, 107, 106], [123, 172, 173]),
     }
     camera = Camera(color_ranges)
-    camera.start(show_masked_image=True)
+    coordinates = {}
+    camera.start(coordinates, show_masked_image=True)
