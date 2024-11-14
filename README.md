@@ -76,21 +76,22 @@ Before setting up the project, ensure you have the following prerequisites insta
 1. Clone the repository into your ROS workspace:
 
    ```bash
-   cd ~/catkin_ws/src
-   git clone <repository-url>
+   cd ~/catkin_ws
+   git clone https://github.com/Demolus13/Open-Manipulator-LLM.git
 
 2. Install the required Python dependencies:
 
    ```bash
    pip install opencv-python numpy speechrecognition
 
-Build the ROS workspace:
+3. Build the ROS workspace:
 
    ```bash
    cd ~/catkin_ws
    catkin_make
    ```
-
+4. Create Executable Files inside the `~/catkin_ws/src` and `~/catkin_ws/calibration` directory. (using `chmod +x <python file>` .
+    
 Source the workspace:
 
    ```bash
@@ -102,7 +103,22 @@ Launch the ROS nodes for manipulator control and object detection:
    ```bash
    rosrun <package_name> llm_pick_and_place.py
    ```
+## Connect to the Open Manipulator Hardware
+### To Connect
+- Connect power source cable to the port on board. 
+- Connect the USB cable from the open manipulator to your PC's USB port. (Do not use too many USB extensions)
+- Connect the camera setup and plug its USB in your PC's port.
+- Use [Dynamixel Wizard](https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/) to configure the robot.
 
+### To Launch
+1. **Terminal 1**
+    ```bash
+    roslaunch open_manipulator_controller open_manipulator_controller.launch
+    ```
+2. **Terminal 2**
+    ```bash
+    rosrun <package name> llm_pick_and_place.py
+    ```
 ## Usage
 
 ### Object Detection and Manipulator Control
@@ -130,13 +146,6 @@ The system uses object detection based on predefined color ranges to detect obje
 Ensure that the camera feed is active, and the robot is properly calibrated for the pick-and-place task. The robot will respond to the following voice commands to perform the respective actions:
 - "Pick up the [color] object"
 - "Place the [color] object"
-
-#### Example Usage:
-1. Launch the ROS node:
-
-   ```bash
-   rosrun <package_name> llm_pick_and_place.py
-   ```
 
 2. Once the system is running, speak the following commands to the robot:
    - "Pick up the red object" → The robot will detect the red object, compute the joint angles, and pick it up.
