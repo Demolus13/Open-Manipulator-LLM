@@ -97,12 +97,6 @@ Source the workspace:
    ```bash
    source devel/setup.bash
    ```
-
-Launch the ROS nodes for manipulator control and object detection:
-
-   ```bash
-   rosrun <package_name> llm_pick_and_place.py
-   ```
 ## Connect to the Open Manipulator Hardware
 ### To Connect
 - Connect power source cable to the port on board. 
