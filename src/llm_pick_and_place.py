@@ -64,7 +64,7 @@ class ManipulatorController:
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed: {e}")
 
-    def control_joint_positions(self, joint_name, joint_position, path_time=3.0):
+    def control_single_joint_positions(self, joint_name, joint_position, path_time=2.0):
         if self.current_joint_states is None:
             rospy.logwarn("Joint states not received yet.")
             return False
@@ -74,16 +74,16 @@ class ManipulatorController:
             rospy.logwarn(f"Invalid joint name: {joint_name}")
             return False
         
-        joint_positions = list(self.current_joint_states)
+        self.circle_positions = list(self.current_joint_states)
         joint_index = joint_names.index(joint_name)
-        joint_positions[joint_index] = joint_position
+        self.circle_positions[joint_index] = joint_position
 
         try:
             rospy.wait_for_service('/goal_joint_space_path', timeout=5)
             move_joint_service = rospy.ServiceProxy('/goal_joint_space_path', SetJointPosition)
             request = SetJointPositionRequest()
             request.joint_position.joint_name = joint_names
-            request.joint_position.position = joint_positions
+            request.joint_position.position = self.circle_positions
             request.path_time = path_time
             response = move_joint_service(request)
             if response.is_planned:
@@ -96,8 +96,28 @@ class ManipulatorController:
             return False
         
         return response.is_planned
+    
+    def control_joint_positions(self, joint_positions, path_time=2.0):
+        try:
+            rospy.wait_for_service('/goal_joint_space_path', timeout=5)
+            move_joint_service = rospy.ServiceProxy('/goal_joint_space_path', SetJointPosition)
+            request = SetJointPositionRequest()
+            request.joint_position.joint_name = ["joint1", "joint2", "joint3", "joint4"]
+            request.joint_position.position = joint_positions
+            request.path_time = path_time
+            response = move_joint_service(request)
+            if response.is_planned:
+                time.sleep(path_time)
+                rospy.loginfo(f"Joints moved to positions {joint_positions} successfully!")
+            else:
+                rospy.logwarn(f"Failed to move joints to positions {joint_positions}.")
+        except rospy.ServiceException as e:
+            rospy.logerr(f"Service call failed: {e}")
+            return False
+        
+        return response.is_planned
 
-    def move_end_effector(self, x, y, z, q1 = 0.0, q2 = 0.0, q3 = 0.0, q4 = 0.0, path_time=3.0):
+    def move_end_effector(self, x, y, z, q1 = 0.0, q2 = 0.0, q3 = 0.0, q4 = 0.0, path_time=2.0):
         rospy.wait_for_service('/goal_task_space_path')
         try:
             move_service = rospy.ServiceProxy('/goal_task_space_path', SetKinematicsPose)
@@ -130,7 +150,7 @@ class ManipulatorController:
             # Move to the object's position
             self.set_home()
             self.control_gripper(0.01)
-            response = self.control_joint_positions("joint1", math.atan2(robot_y, robot_x))
+            response = self.control_single_joint_positions("joint1", math.atan2(robot_y, robot_x), 1.0)
             if not response:
                 self.set_home()
                 self.set_start()
@@ -141,6 +161,11 @@ class ManipulatorController:
                 self.set_start()
                 continue
             self.control_gripper(-0.01)
+            response = self.control_joint_positions(self.circle_positions, 1.0)
+            if not response:
+                self.set_home()
+                self.set_start()
+                continue
             self.set_home()
             response = self.set_drop_off(color)
             if not response:
@@ -151,11 +176,11 @@ class ManipulatorController:
 
             self.set_start(1.0)
 
-    def set_home(self, path_time=3.0):
+    def set_home(self, path_time=2.0):
         # Define home position for the manipulator
         self.move_end_effector(*self.home_positions, path_time)
 
-    def set_start(self, path_time=3.0):
+    def set_start(self, path_time=2.0):
         # Define start position for the manipulator
         self.move_end_effector(*self.start_positions, path_time)
 
