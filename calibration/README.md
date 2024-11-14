@@ -93,3 +93,14 @@ To stop the program, press q while the camera feed window is active.
   - `stop`: Releases the camera and closes windows.
   
 - **Main Execution**: Defines color ranges and initializes the `Camera` class. The program starts with `camera.start`, enabling object detection.
+
+### Known Issues
+
+- The program may not work well in low lighting or with non-distinct color shades.
+- Adjust the area threshold if too many small regions (noise) are detected.
+
+### Future Improvements
+
+- Add adjustable threshold settings to dynamically filter object sizes.
+- Implement object tracking across frames for smoother tracking.
+- Extend support for additional camera devices or video sources.
