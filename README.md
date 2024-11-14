@@ -1,5 +1,6 @@
 # Open-Manipulator-LLM
-[https://github.com/Demolus13/Open-Manipulator-LLM/issues/1#issue-2659401082](https://github.com/Demolus13/Open-Manipulator-LLM/issues/1#issue-2659401082)
+[https://github.com/user-attachments/assets/8915d633-6475-4254-8f0a-fd39ddcc58e0](https://github.com/user-attachments/assets/8915d633-6475-4254-8f0a-fd39ddcc58e0
+)
 ## Overview
 
 The Open-Manipulator-LLM package is designed to control an Open Manipulator using a combination of computer vision and speech recognition. The manipulator can detect objects of specific colors, pick them up, and place them in predefined positions based on voice commands.
