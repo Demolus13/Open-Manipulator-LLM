@@ -3,19 +3,25 @@ import sys
 import cv2
 import time
 import math
+import pandas as pd
 
 import rospy
 import threading
 import numpy as np
+from dotenv import load_dotenv
 
 from sensor_msgs.msg import JointState
 from open_manipulator_msgs.srv import SetJointPosition, SetJointPositionRequest, SetKinematicsPose, SetKinematicsPoseRequest
 
 import speech_recognition as sr
-
+from langchain_groq.chat_models import ChatGroq
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from calibration.camera import Camera
+
+# Load environment variables from .env file
+load_dotenv()
+Groq_API_Key = os.getenv("GROQ_API_KEY")
 
 class ManipulatorController:
     def __init__(self, color_ranges, workspace_points):
@@ -23,6 +29,13 @@ class ManipulatorController:
         self.camera = Camera(color_ranges)
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
+
+        # Initialize GROQ model for language understanding
+        self.model_name = "llama3-8b-8192"
+        self.chat_model = ChatGroq(model=self.model_name, api_key=Groq_API_Key, temperature=0)
+        script_dir = os.path.dirname(__file__)
+        examples_path = os.path.join(script_dir, "../groq-llm-model/examples.csv")
+        self.examples = pd.read_csv(examples_path)
 
         # Define manipulator positions
         self.start_position = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
@@ -172,6 +185,54 @@ class ManipulatorController:
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed: {e}")
             return False
+        
+    def get_examples(self, dataset, color_name, num_examples=3):
+        """
+        Generate a few-shot example string for a specific color from a DataFrame.
+        """
+        color_data = dataset[dataset["Color"] == color_name]
+
+        # Limit the number of examples to num_examples
+        examples = []
+        for index, line in color_data.head(num_examples).iterrows():
+            example = f"""
+            {index + 1}. User Prompt: {line['UserPrompt']}
+            Available Colors: {line['AvailableColors']}
+            Action: {line['Action']}
+            """
+            examples.append(example.strip())
+
+        return "\n\n".join(examples)
+    
+    def construct_prompt(self, dataset, user_prompt, available_colors):
+        """
+        Construct the prompt for color picking using the few-shot examples.
+        """
+        colors = dataset['Color'].unique()
+        examples = ""
+
+        for color in colors:
+            examples += self.get_examples(dataset, color) + "\n\n"
+
+        # Check if the requested color is available
+        available_colors_set = set(available_colors)
+        color_actions = [f"PICK UP COLOR: {color}" for color in available_colors_set]
+        color_actions.append("UNKNOWN")
+
+        prompt = f"""
+        You are an expert in identifying colors based on user prompts.
+        Based on the provided user prompts and few-shot examples, predict the action to pick up which color.
+
+        Few-Shot Examples:
+        {examples.strip()}
+
+        User Prompt: {user_prompt}
+        Available Colors: {', '.join(available_colors)}
+
+        Predict the action as one of the following: {', '.join(color_actions)}.
+        **Remember to output only the label in the specified format.**
+        """
+        return prompt.strip()
 
     def execute_pick_and_place(self, color, coordinates):
         """Perform a pick-and-place task for detected objects of a given color."""
@@ -210,28 +271,15 @@ class ManipulatorController:
         """Continuously capture images to detect objects."""
         while not rospy.is_shutdown():
             self.camera.start(self.object_coordinates, show_masked_image=False)
-
-    def process_command_with_llm(self, command):
-        prompt = (
-            "You are controlling a robot manipulator. The robot can perform tasks such as picking up objects of different colors. "
-            "Interpret the following command and provide the action in the format 'action: color'.\n"
-            f"Command: {command}\n"
-            "Response format: 'pick up: color' or 'unknown command'."
-        )
-        response = None
-        return response.choices[0].text.strip()
     
     def execute_command(self, interpreted_command):
-        if interpreted_command.startswith("pick up:"):
-            color = interpreted_command.split(":")[1].strip()
-            if color in self.camera.color_ranges.keys():
-                if color in self.object_coordinates:
-                    self.execute_pick_and_place(color, self.object_coordinates[color])
-                    self.object_coordinates.pop(color)
-                else:
-                    rospy.logwarn(f"No {color} objects detected.")
+        if interpreted_command.startswith("PICK UP COLOR:"):
+            color = interpreted_command.split(":")[1].strip().lower()
+            if color in self.object_coordinates:
+                self.execute_pick_and_place(color, self.object_coordinates[color])
+                self.object_coordinates.pop(color)
             else:
-                rospy.logwarn(f"Unknown color: {color}")
+                rospy.logwarn(f"No {color} objects detected.")
         else:
             rospy.logwarn(f"Command not recognized: {interpreted_command}")
 
@@ -247,9 +295,10 @@ class ManipulatorController:
                 command = self.recognizer.recognize_google(audio).lower()
                 print(f"Command received: {command}")
 
-                # command = self.process_command_with_llm(command)
-                # print(f"Interpreted command: {command}")
-                self.execute_command(command)
+                prompt = self.construct_prompt(self.examples, command, self.object_coordinates.keys())
+                interpreted_command = self.chat_model.invoke(prompt).content.strip()
+                print(f"Interpreted command: {interpreted_command}")
+                self.execute_command(interpreted_command)
             except sr.UnknownValueError:
                 rospy.logwarn("Could not understand the audio.")
             except sr.RequestError as e:
@@ -322,7 +371,7 @@ if __name__ == "__main__":
         'purple': ([48, 0, 0], [85, 23, 67]),
         'orange': ([0, 35, 93], [38, 84, 155])
     }
-    workspace_points = [(522, 24), (119, 21), (78, 447), (560, 446)]
+    workspace_points = [(525, 19), (108, 16), (75, 456), (554, 456)]
     controller = ManipulatorController(color_ranges, workspace_points)
 
     try:
