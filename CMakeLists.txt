@@ -167,10 +167,9 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  src/get_coordinates.py
-  src/cartesian_control.py
   src/llm_pick_and_place.py
-  src/get_joint_states.py
+  src/get_positions.py
+  src/cartesian_control.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
