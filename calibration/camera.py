@@ -5,7 +5,7 @@ import numpy as np
 class Camera:
     def __init__(self, color_ranges):
         self.cap = None
-        for i in range(1, 10):
+        for i in range(0, 10):
             self.cap = cv2.VideoCapture(i)
             if self.cap.isOpened():
                 print(f"Camera {i} is active")
@@ -80,9 +80,9 @@ class Camera:
 if __name__ == "__main__":
     color_ranges = {
         'red': ([0, 0, 88], [105, 28, 155]),
-        'purple': ([81, 25, 0], [126, 58, 255]),
-        'yellow': ([60, 115, 114], [127, 178, 185]),
-        'orange': ([0, 36, 89], [75, 255, 190])
+        'green': ([26, 40, 0], [75, 255, 31]),
+        'purple': ([48, 0, 0], [85, 23, 67]),
+        'orange': ([0, 35, 93], [38, 84, 155])
     }
     camera = Camera(color_ranges)
     coordinates = {}

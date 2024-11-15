@@ -1,0 +1,19 @@
+UserPrompt,AvailableColors,Action,Color
+Pick the bright color.,"red, blue, yellow",PICK UP COLOR: yellow,yellow
+Choose a calm color.,"green, blue, purple",PICK UP COLOR: blue,blue
+Select the standout color.,"orange, black, white",PICK UP COLOR: orange,orange
+Pick a warm color.,"red, orange, yellow",PICK UP COLOR: red,red
+Choose a cool color.,"blue, green, cyan",PICK UP COLOR: blue,blue
+Pick the royal color.,"purple, black, white",PICK UP COLOR: purple,purple
+Select the nature color.,"green, brown, yellow",PICK UP COLOR: green,green
+Pick a color that is not available.,"black, white, gray",UNKNOWN,UNKNOWN
+Choose the purple color.,"red, blue, green",UNKNOWN,UNKNOWN
+Select the green color.,"yellow, blue, purple",PICK UP COLOR: green,green
+Pick the red color.,"red, blue, yellow",PICK UP COLOR: red,red
+Choose the blue color.,"green, blue, purple",PICK UP COLOR: blue,blue
+Select the yellow color.,"orange, black, white",PICK UP COLOR: yellow,yellow
+Pick the orange color.,"red, orange, yellow",PICK UP COLOR: orange,orange
+Choose the black color.,"blue, green, cyan",UNKNOWN,UNKNOWN
+Select the white color.,"purple, black, white",UNKNOWN,UNKNOWN
+Pick the cyan color.,"green, brown, yellow",PICK UP COLOR: cyan,cyan
+Choose the brown color.,"black, white, gray",PICK UP COLOR: brown,brown
