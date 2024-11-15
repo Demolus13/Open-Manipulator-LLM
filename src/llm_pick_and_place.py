@@ -25,13 +25,17 @@ class ManipulatorController:
         # Define manipulator positions
         self.start_position = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
         self.home_position = [0.170184, -0.017297, 0.086728, 0.036180, 0.663726, -0.040664, 0.745993]
-        self.drop_off_position = [0.011012, 0.161025, 0.093839, 0.454568, 0.451787, -0.544460, 0.541129]
         self.drop_off_positions = {
-            'default': [0.024607, 0.216026, 0.116800, -0.306642, 0.325058, 0.613874, 0.650743],
-            'red': [0.024607, 0.216026, 0.116800, -0.306642, 0.325058, 0.613874, 0.650743],
-            'green': [0.00264, -0.226742, 0.126346, 0.281248, 0.269835, -0.664532, 0.637563],
-            'purple': [0.177435, 0.196612, 0.181032, -0.086134, 0.185044, 0.413116, 0.887510],
-            'orange': [0.125398, -0.195257, 0.118291, 0.208797, 0.362717, -0.453098, 0.787111]
+            'default': [[0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089],
+                        [0.024607, 0.216026, 0.116800, -0.306642, 0.325058, 0.613874, 0.650743]],
+            'red': [[0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089],
+                    [0.024607, 0.216026, 0.116800, -0.306642, 0.325058, 0.613874, 0.650743]],
+            'green': [[0.011012, -0.161025, 0.093839, 0.454568, 0.451787, -0.544460, 0.541129],
+                      [0.00264, -0.226742, 0.126346, 0.281248, 0.269835, -0.664532, 0.637563]],
+            'purple': [[0.119341, 0.130795, 0.109074, -0.263562, 0.557255, 0.336658, 0.711803],
+                       [0.177435, 0.196612, 0.181032, -0.086134, 0.185044, 0.413116, 0.887510]],
+            'orange': [[0.090887, -0.145967, 0.093733, 0.328219, 0.550468, -0.393125, 0.659325],
+                       [0.125398, -0.195257, 0.118291, 0.208797, 0.362717, -0.453098, 0.787111]]
         }
 
         # Setup workspace transformation
@@ -241,27 +245,16 @@ class ManipulatorController:
         """Move the end effector to the drop-off position based on color."""
 
         if color in self.drop_off_positions:
-            if(color == 'red'):
-                self.drop_off_position = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
-            elif(color == 'green'):
-                self.drop_off_position = [0.011012, -0.161025, 0.093839, 0.454568, 0.451787, -0.544460, 0.541129]
-            elif(color == 'purple'):
-                self.drop_off_position = [0.119341, 0.130795, 0.109074, -0.263562, 0.557255, 0.336658, 0.711803]
-            elif(color == 'orange'):
-                self.drop_off_position = [0.090887, -0.145967, 0.093733, 0.328219, 0.550468, -0.393125, 0.659325]
-            else:
-                self.drop_off_position = [0.022643, 0.157449, 0.091056, -0.447205, 0.478455, 0.516029, 0.552089]
-                print('No drop-off position defined for {color} object.')
-            
-            
-            if not self.move_end_effector(*self.drop_off_position):
-                return False
-            cartesian_position = self.drop_off_positions[color]
-            return self.move_end_effector(*cartesian_position)
+            for cartesian_position in self.drop_off_positions[color]:
+                if not self.move_end_effector(*cartesian_position):
+                    return False
         else:
             print(f"No drop-off position defined for {color} object.")
-            cartesian_position = self.drop_off_positions['default']
-            return self.move_end_effector(*cartesian_position)
+            for cartesian_position in self.drop_off_positions['default']:
+                if not self.move_end_effector(*cartesian_position):
+                    return False
+                
+        return True
 
     def reset_to_start(self):
         """Reset manipulator to start position in case of error during task."""
