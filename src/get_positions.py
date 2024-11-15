@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import sys
 import rospy
 from open_manipulator_msgs.msg import KinematicsPose
