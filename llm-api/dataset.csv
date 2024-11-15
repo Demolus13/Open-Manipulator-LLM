@@ -1,0 +1,19 @@
+prompt,completion
+"Q: Pick up the red ball.
+A:", pick up: red
+"Q: Grab the blue cube.
+A:", pick up: blue
+"Q: Take the green book.
+A:", pick up: green
+"Q: Fetch the yellow toy.
+A:", pick up: yellow
+"Q: What is the capital of France?
+A:", unknown
+"Q: Who wrote 'Pride and Prejudice'?
+A:", unknown
+"Q: Pick up the purple pen.
+A:", pick up: purple
+"Q: Pick up the orange ball.
+A:", pick up: orange
+"Q: Collect the gold star and the pearl.
+A:", unknown
