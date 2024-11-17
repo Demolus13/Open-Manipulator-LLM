@@ -1,0 +1,7 @@
+<launch>
+    <!-- Launch the manipulator controller -->
+    <include file="$(find open_manipulator_controller)/launch/open_manipulator_controller.launch" />
+
+    <!-- Run the llm_pick_and_place.py script -->
+    <node pkg="open_manipulator_llm" type="llm_pick_and_place.py" name="llm_pick_and_place" output="screen" />
+</launch>
