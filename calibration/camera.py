@@ -12,24 +12,22 @@ class Camera:
                 break
         else:
             raise Exception("No camera is available")
-        
-        # Convert RGB input to BGR and store in color_ranges
-        self.color_ranges = {}
-        for color, (lower_bound, upper_bound) in color_ranges.items():
-            self.color_ranges[color] = (
-                np.array(lower_bound),
-                np.array(upper_bound)
-            )
+
+        # Store color ranges in HSV
+        self.color_ranges = color_ranges
 
         self.coordinates = {}
 
     def capture_image(self, show_masked_image=False):
         ret, frame = self.cap.read()
         if ret:
+            # Convert the frame to HSV
+            hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
             coordinates = {}
 
             for color, (lower_bound, upper_bound) in self.color_ranges.items():
-                mask = cv2.inRange(frame, lower_bound, upper_bound)
+                mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)
                 contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 coordinates[color] = []
 
@@ -39,26 +37,24 @@ class Camera:
 
                 for contour in contours:
                     area = cv2.contourArea(contour)
-                    if area > 500:
+                    if area > 500:  # Filter out small objects
                         x, y, w, h = cv2.boundingRect(contour)
                         coordinates[color].append((x, y, w, h))
 
-                        # midpoint_x = x + w // 2
-                        # midpoint_y = y + h // 2
-                        # print(f"{color} object detected at ({midpoint_x}, {midpoint_y})")
-
+                        # Draw rectangle and label the detected color
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                         cv2.putText(frame, color, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
 
             self.coordinates = coordinates
 
+            # Show the main webcam feed with detections
             cv2.imshow('Webcam Feed', frame)
         else:
             raise Exception("Failed to capture image")
-        
+
     def get_coordinates(self):
         return self.coordinates
-    
+
     def start(self, coordinates, show_masked_image=False):
         while True:
             self.capture_image(show_masked_image=show_masked_image)
@@ -68,9 +64,7 @@ class Camera:
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        if self.cap is not None:
-            self.cap.release()
-        cv2.destroyAllWindows()
+        self.stop()
 
     def stop(self):
         if self.cap is not None:
@@ -78,12 +72,14 @@ class Camera:
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
+    # Define the color ranges in HSV
     color_ranges = {
-        'red': ([0, 0, 88], [105, 28, 155]),
-        'green': ([26, 40, 0], [75, 255, 31]),
-        'purple': ([48, 0, 0], [85, 23, 67]),
-        'orange': ([0, 35, 93], [38, 84, 155])
+        'red': ([0, 100, 100], [10, 255, 255]),  # Lower and upper bounds for red
+        'green': ([35, 50, 50], [85, 255, 255]), # Lower and upper bounds for green
+        'purple': ([130, 50, 50], [160, 255, 255]), # Lower and upper bounds for purple
+        'orange': ([10, 100, 100], [25, 255, 255]) # Lower and upper bounds for orange
     }
+
     camera = Camera(color_ranges)
     coordinates = {}
     camera.start(coordinates, show_masked_image=True)
