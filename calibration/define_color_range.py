@@ -8,14 +8,14 @@ def nothing(x):
 cv2.namedWindow('Masked Image')
 
 # Create trackbars for lower bound color change
-cv2.createTrackbar('Lower R', 'Masked Image', 0, 255, nothing)
-cv2.createTrackbar('Lower G', 'Masked Image', 0, 255, nothing)
-cv2.createTrackbar('Lower B', 'Masked Image', 0, 255, nothing)
+cv2.createTrackbar('Lower H', 'Masked Image', 0, 179, nothing)  # Hue range is 0-179 in OpenCV
+cv2.createTrackbar('Lower S', 'Masked Image', 0, 255, nothing)
+cv2.createTrackbar('Lower V', 'Masked Image', 0, 255, nothing)
 
 # Create trackbars for upper bound color change
-cv2.createTrackbar('Upper R', 'Masked Image', 255, 255, nothing)
-cv2.createTrackbar('Upper G', 'Masked Image', 255, 255, nothing)
-cv2.createTrackbar('Upper B', 'Masked Image', 255, 255, nothing)
+cv2.createTrackbar('Upper H', 'Masked Image', 179, 179, nothing)
+cv2.createTrackbar('Upper S', 'Masked Image', 255, 255, nothing)
+cv2.createTrackbar('Upper V', 'Masked Image', 255, 255, nothing)
 
 # Capture video from the webcam
 for i in range(1, 10):
@@ -32,22 +32,25 @@ while True:
     if not ret:
         break
 
+    # Convert the frame to HSV color space
+    hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
     # Get current positions of the trackbars for lower bound
-    lower_r = cv2.getTrackbarPos('Lower R', 'Masked Image')
-    lower_g = cv2.getTrackbarPos('Lower G', 'Masked Image')
-    lower_b = cv2.getTrackbarPos('Lower B', 'Masked Image')
+    lower_h = cv2.getTrackbarPos('Lower H', 'Masked Image')
+    lower_s = cv2.getTrackbarPos('Lower S', 'Masked Image')
+    lower_v = cv2.getTrackbarPos('Lower V', 'Masked Image')
 
     # Get current positions of the trackbars for upper bound
-    upper_r = cv2.getTrackbarPos('Upper R', 'Masked Image')
-    upper_g = cv2.getTrackbarPos('Upper G', 'Masked Image')
-    upper_b = cv2.getTrackbarPos('Upper B', 'Masked Image')
+    upper_h = cv2.getTrackbarPos('Upper H', 'Masked Image')
+    upper_s = cv2.getTrackbarPos('Upper S', 'Masked Image')
+    upper_v = cv2.getTrackbarPos('Upper V', 'Masked Image')
 
     # Define the lower and upper bounds for the color
-    lower_bound = np.array([lower_r, lower_g, lower_b])
-    upper_bound = np.array([upper_r, upper_g, upper_b])
+    lower_bound = np.array([lower_h, lower_s, lower_v])
+    upper_bound = np.array([upper_h, upper_s, upper_v])
 
     # Create a mask
-    mask = cv2.inRange(frame, lower_bound, upper_bound)
+    mask = cv2.inRange(hsv_frame, lower_bound, upper_bound)
     masked_image = cv2.bitwise_and(frame, frame, mask=mask)
 
     # Display the masked image
@@ -62,4 +65,4 @@ cap.release()
 cv2.destroyAllWindows()
 
 # Print the selected color ranges
-print(f"Selected color range:\nLower bound: {lower_bound}\nUpper bound: {upper_bound}")
+print(f"Selected color range:\nLower bound: [{lower_h}, {lower_s}, {lower_v}]\nUpper bound: [{upper_h}, {upper_s}, {upper_v}]")
